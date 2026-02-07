@@ -32,9 +32,7 @@ data class UnconnectedPong(
         }
 
         override fun decode(byteString: ByteString): UnconnectedPong {
-            val buffer = Buffer()
-            buffer.write(byteString)
-
+            val buffer = Buffer().also { it.write(byteString) }
             val time = buffer.readI64()
             val serverGUID = buffer.readU64()
             buffer.skipMagic()

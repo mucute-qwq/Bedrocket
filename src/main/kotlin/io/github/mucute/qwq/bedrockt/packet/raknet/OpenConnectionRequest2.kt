@@ -2,42 +2,44 @@ package io.github.mucute.qwq.bedrockt.packet.raknet
 
 import io.github.mucute.qwq.bedrockt.codec.Codec
 import io.github.mucute.qwq.bedrockt.util.*
+import io.ktor.network.sockets.*
 import kotlinx.io.Buffer
 import kotlinx.io.bytestring.ByteString
 import kotlinx.io.readByteString
 import kotlinx.io.write
 
-// Contains 2 packet ids: 0x01, 0x02
-data class UnconnectedPing(
-    val time: i64,
+data class OpenConnectionRequest2(
+    val serverAddress: InetSocketAddress,
+    val mtu: u16,
     val clientGUID: u64
 ) : RakNetPacket {
 
     override fun encode() = encode(this)
 
-    companion object CodecImpl : Codec<UnconnectedPing> {
+    companion object CodecImpl : Codec<OpenConnectionRequest2> {
 
-        const val ID1: u8 = 0x01u
+        const val ID: u8 = 0x07u
 
-        const val ID2: u8 = 0x02u
-
-        override fun encode(packet: UnconnectedPing): ByteString {
+        override fun encode(packet: OpenConnectionRequest2): ByteString {
             val buffer = Buffer()
-            buffer.writeU8(ID1)
-            buffer.writeI64(packet.time)
+            buffer.writeU8(ID)
             buffer.writeMagic()
+            buffer.writeAddress(packet.serverAddress)
+            buffer.writeU16(packet.mtu)
             buffer.writeU64(packet.clientGUID)
             return buffer.readByteString()
         }
 
-        override fun decode(byteString: ByteString): UnconnectedPing {
+        override fun decode(byteString: ByteString): OpenConnectionRequest2 {
             val buffer = Buffer().also { it.write(byteString) }
-            val time = buffer.readI64()
             buffer.skipMagic()
 
+            val serverAddress = buffer.readAddress()
+            val mtu = buffer.readU16()
             val clientGUID = buffer.readU64()
-            return UnconnectedPing(time, clientGUID)
+            return OpenConnectionRequest2(serverAddress, mtu, clientGUID)
         }
+
 
     }
 

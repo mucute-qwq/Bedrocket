@@ -2,12 +2,10 @@ package io.github.mucute.qwq.bedrockt.session
 
 import io.github.mucute.qwq.bedrockt.exception.UnknownPacketException
 import io.github.mucute.qwq.bedrockt.logger
-import io.github.mucute.qwq.bedrockt.packet.raknet.RakNetPacket
-import io.github.mucute.qwq.bedrockt.packet.raknet.UnconnectedPing
-import io.github.mucute.qwq.bedrockt.packet.raknet.UnconnectedPong
+import io.github.mucute.qwq.bedrockt.packet.raknet.*
 import io.github.mucute.qwq.bedrockt.server.RakNetServer
 import io.github.mucute.qwq.bedrockt.shared.RakNetDatagram
-import io.github.mucute.qwq.bedrockt.util.RakNetCodecImplMap
+import io.github.mucute.qwq.bedrockt.util.RakNetClientOfflineCodecMap
 import io.github.mucute.qwq.bedrockt.util.readU8
 import io.ktor.network.sockets.*
 import kotlinx.coroutines.Dispatchers
@@ -30,7 +28,7 @@ class RakNetServerSession(
 
         var packet: RakNetPacket? = null
 
-        for ((targetId, codecImpl) in RakNetCodecImplMap) {
+        for ((targetId, codecImpl) in RakNetClientOfflineCodecMap) {
             if (id == targetId) {
                 packet = codecImpl.decode(source.readByteString())
                 break
@@ -65,14 +63,38 @@ class RakNetServerSession(
         }
 
         when (packet) {
+
             is UnconnectedPing -> {
                 val unconnectedPong = UnconnectedPong(
                     time = packet.time,
                     serverGUID = rakNetServer.serverGUID,
-                    motd = rakNetServer.motd
+                    motd = rakNetServer.motd.toString()
                 )
                 send(unconnectedPong, datagram.address)
             }
+
+            is OpenConnectionRequest1 -> {
+                val openConnectionReply1 = OpenConnectionReply1(
+                    serverGUID = rakNetServer.serverGUID,
+                    useSecurity = false,
+                    mtu = rakNetServer.mtu
+                )
+                send(openConnectionReply1, datagram.address)
+            }
+
+            is OpenConnectionRequest2 -> {
+                val openConnectionReply2 = OpenConnectionReply2(
+                    serverGUID = rakNetServer.serverGUID,
+                    clientAddress = datagram.address as InetSocketAddress,
+                    mtu = packet.mtu,
+                    encryptionEnabled = false
+                )
+                send(openConnectionReply2, datagram.address)
+
+                val alreadyConnected = AlreadyConnected(rakNetServer.serverGUID)
+                send(alreadyConnected, datagram.address)
+            }
+
         }
 
         RakNetDatagram(packet, datagram.address)

@@ -1,7 +1,9 @@
 package io.github.mucute.qwq.bedrockt.server
 
 import io.github.mucute.qwq.bedrockt.session.RakNetServerSession
-import io.github.mucute.qwq.bedrockt.util.createMotd
+import io.github.mucute.qwq.bedrockt.util.Motd
+import io.github.mucute.qwq.bedrockt.util.u16
+import io.github.mucute.qwq.bedrockt.util.u64
 import io.ktor.network.selector.*
 import io.ktor.network.sockets.*
 import kotlinx.coroutines.Dispatchers
@@ -10,16 +12,22 @@ import kotlin.random.nextULong
 
 class RakNetServer {
 
-    var serverGUID = Random.nextULong()
+    var serverGUID: u64 = Random.nextULong()
+        set(value) {
+            field = value
+            motd = motd.copy(serverGUID = value)
+        }
 
-    var motd = createMotd(serverGUID = serverGUID)
+    var motd: Motd = Motd(serverGUID = serverGUID)
+
+    var mtu: u16 = 1400u
 
     internal var udpSocket: BoundDatagramSocket? = null
 
     fun isActive() = udpSocket != null && !udpSocket!!.isClosed
 
     suspend fun listen(
-        localAddress: SocketAddress,
+        localAddress: InetSocketAddress,
         selectorManager: SelectorManager = ActorSelectorManager(Dispatchers.IO)
     ): RakNetServerSession {
         udpSocket = aSocket(selectorManager)
