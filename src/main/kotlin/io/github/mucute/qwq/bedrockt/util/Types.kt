@@ -2,8 +2,10 @@
 
 package io.github.mucute.qwq.bedrockt.util
 
+import kotlinx.io.Buffer
 import kotlinx.io.Sink
 import kotlinx.io.Source
+import kotlinx.io.readByteArray
 import kotlinx.io.readIntLe
 import kotlinx.io.readLongLe
 import kotlinx.io.readShortLe
@@ -49,6 +51,12 @@ inline fun Sink.writeU16(value: u16) {
     writeUShort(value)
 }
 
+inline fun Sink.writeU24(value: u32) {
+    writeU8((((value shr 16) and 0xFFu).toUByte()))
+    writeU8((((value shr 8) and 0xFFu).toUByte()))
+    writeU8((value and 0xFFu).toUByte())
+}
+
 inline fun Sink.writeU32(value: u32) {
     writeUInt(value)
 }
@@ -59,6 +67,12 @@ inline fun Sink.writeU64(value: u64) {
 
 inline fun Sink.writeU16Le(value: u16) {
     writeUShortLe(value)
+}
+
+inline fun Sink.writeU24Le(value: u32) {
+    writeU8((value and 0xFFu).toUByte())
+    writeU8(((value shr 8) and 0xFFu).toUByte())
+    writeU8(((value shr 16) and 0xFFu).toUByte())
 }
 
 inline fun Sink.writeU32Le(value: u32) {
@@ -105,6 +119,11 @@ inline fun Source.readU16(): u16 {
     return readUShort()
 }
 
+inline fun Source.readU24(): u32 {
+    val byteArray = readByteArray(3)
+    return (byteArray[0].toUInt() shl 16) or (byteArray[1].toUInt() shl 8) or byteArray[2].toUInt()
+}
+
 inline fun Source.readU32(): u32 {
     return readUInt()
 }
@@ -115,6 +134,11 @@ inline fun Source.readU64(): u64 {
 
 inline fun Source.readU16Le(): u16 {
     return readUShortLe()
+}
+
+inline fun Source.readU24Le(): u32 {
+    val byteArray = readByteArray(3)
+    return (byteArray[2].toUInt() shl 16) or (byteArray[1].toUInt() shl 8) or byteArray[0].toUInt()
 }
 
 inline fun Source.readU32Le(): u32 {

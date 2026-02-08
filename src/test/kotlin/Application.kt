@@ -1,4 +1,5 @@
 import io.github.mucute.qwq.bedrockt.server.RakNetServer
+import io.ktor.network.sockets.InetSocketAddress
 import kotlinx.coroutines.runBlocking
 import kotlin.test.Test
 
@@ -8,13 +9,12 @@ class Application {
 
         @JvmStatic
         fun main(args: Array<String>): Unit = runBlocking {
-            val rakNetServer = RakNetServer()
-            val rakNetSession = rakNetServer.listen()
-            print("RakNetServer listened on 0.0.0.0:19132")
+            val localAddress = InetSocketAddress("0.0.0.0", 19132)
+            val rakNetServer = RakNetServer(localAddress)
+            print("RakNetServer listened on $localAddress")
 
             while (true) {
-                val packet = rakNetSession.receive()
-                println(packet)
+                rakNetServer.accept()
             }
         }
 
