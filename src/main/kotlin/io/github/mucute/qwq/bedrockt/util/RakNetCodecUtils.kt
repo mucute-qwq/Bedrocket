@@ -1,5 +1,6 @@
 package io.github.mucute.qwq.bedrockt.util
 
+import io.github.mucute.qwq.bedrockt.packet.raknet.ConnectedPing
 import io.github.mucute.qwq.bedrockt.packet.raknet.ConnectionRequest
 import io.github.mucute.qwq.bedrockt.packet.raknet.Disconnect
 import io.github.mucute.qwq.bedrockt.packet.raknet.GamePacket
@@ -17,6 +18,7 @@ val RakNetClientOfflineCodecMap = hashMapOf(
 )
 
 val RakNetClientOnlineCodecMap = hashMapOf(
+    ConnectedPing.ID to ConnectedPing,
     ConnectionRequest.ID to ConnectionRequest,
     NewIncomingConnection.ID to NewIncomingConnection,
     GamePacket.ID to GamePacket,

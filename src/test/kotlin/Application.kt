@@ -1,7 +1,7 @@
 import io.github.mucute.qwq.bedrockt.server.RakNetServer
 import io.ktor.network.sockets.InetSocketAddress
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
-import kotlin.test.Test
 
 class Application {
 
@@ -14,7 +14,8 @@ class Application {
             print("RakNetServer listened on $localAddress")
 
             while (true) {
-                rakNetServer.accept()
+                val session = rakNetServer.receive()
+
             }
         }
 
